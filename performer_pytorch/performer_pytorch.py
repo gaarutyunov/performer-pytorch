@@ -265,9 +265,8 @@ class FastAttention(nn.Module):
             q, k = map(create_kernel, (q, k))
 
         else:
-            create_kernel = partial(softmax_kernel, projection_matrix = self.projection_matrix, device = device)
-            q = create_kernel(q, is_query = True)
-            k = create_kernel(k, is_query = False)
+            q = softmax_kernel(q, is_query = True, projection_matrix = self.projection_matrix, device = device)
+            k = softmax_kernel(k, is_query = False, projection_matrix = self.projection_matrix.copy(), device = device)
 
         attn_fn = linear_attention if not self.causal else self.causal_linear_fn
         out = attn_fn(q, k, v)
