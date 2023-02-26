@@ -266,7 +266,7 @@ class FastAttention(nn.Module):
 
         else:
             q = softmax_kernel(q, is_query = True, projection_matrix = self.projection_matrix, device = device)
-            k = softmax_kernel(k, is_query = False, projection_matrix = self.projection_matrix.copy(), device = device)
+            k = softmax_kernel(k, is_query = False, projection_matrix = torch.clone(self.projection_matrix), device = device)
 
         attn_fn = linear_attention if not self.causal else self.causal_linear_fn
         out = attn_fn(q, k, v)
