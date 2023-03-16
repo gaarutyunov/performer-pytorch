@@ -324,18 +324,18 @@ class PreScaleNorm(nn.Module):
         self.g = nn.Parameter(torch.ones(1))
         self.eps = eps
 
-    def forward(self, x, **kwargs):
+    def forward(self, x, *args, **kwargs):
         n = torch.norm(x, dim=-1, keepdim=True).clamp(min=self.eps)
         x = x / n * self.g
-        return self.fn(x, **kwargs)
+        return self.fn(x, *args, **kwargs)
 
 class PreLayerNorm(nn.Module):
     def __init__(self, dim, fn):
         super().__init__()
         self.norm = nn.LayerNorm(dim)
         self.fn = fn
-    def forward(self, x, **kwargs):
-        return self.fn(self.norm(x), **kwargs)
+    def forward(self, x, *args, **kwargs):
+        return self.fn(self.norm(x), *args, **kwargs)
 
 class Chunk(nn.Module):
     def __init__(self, chunks, fn, along_dim = -1):
@@ -344,11 +344,11 @@ class Chunk(nn.Module):
         self.chunks = chunks
         self.fn = fn
 
-    def forward(self, x, **kwargs):
+    def forward(self, x, *args, **kwargs):
         if self.chunks == 1:
-            return self.fn(x, **kwargs)
+            return self.fn(x, *args, **kwargs)
         chunks = x.chunk(self.chunks, dim = self.dim)
-        return torch.cat([self.fn(c, **kwargs) for c in chunks], dim = self.dim)
+        return torch.cat([self.fn(c, *args, **kwargs) for c in chunks], dim = self.dim)
 
 class FeedForward(nn.Module):
     def __init__(self, dim, mult = 4, dropout = 0., activation = None, glu = False):
@@ -361,7 +361,7 @@ class FeedForward(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.w2 = nn.Linear(dim * mult, dim)
 
-    def forward(self, x, **kwargs):
+    def forward(self, x, *args, **kwargs):
         if not self.glu:
             x = self.w1(x)
             x = self.act(x)
@@ -407,7 +407,7 @@ class Attention(nn.Module):
         self.to_out = nn.Linear(inner_dim, dim, bias = attn_out_bias)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x, pos_emb = None, context = None, mask = None, context_mask = None, **kwargs):
+    def forward(self, x, pos_emb = None, context = None, mask = None, context_mask = None, *args, **kwargs):
         b, n, _, h, gh = *x.shape, self.heads, self.global_heads
 
         cross_attend = exists(context)
