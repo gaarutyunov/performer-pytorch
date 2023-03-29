@@ -162,7 +162,7 @@ def gaussian_orthogonal_random_matrix(nb_rows, nb_columns, scaling = 0, device =
     else:
         raise ValueError(f'Invalid scaling {scaling}')
 
-    return torch.diag(multiplier) @ final_matrix
+    return torch.eye(multiplier.size(0)) * multiplier @ final_matrix
 
 # linear attention classes with softmax kernel
 
